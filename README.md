@@ -1,2 +1,5 @@
 # IJCAI-2022
-xtending Programmatic Policy Spaces with Hidden Units from Neural Policies
+Extending Programmatic Policy Spaces with Hidden Units from Neural Policies
+
+S. Orfanos and L. Lelis.
+Submitted to IJCAI-2022
