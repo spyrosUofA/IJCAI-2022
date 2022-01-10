@@ -1,83 +1,95 @@
 import numpy as np
-import argparse
 import matplotlib.pyplot as plt
-from shutil import copyfile
-
-# 0: ID
-# 1: Reward
-# 2: Score
-# 3: Nb Games Played
-# 4: Times
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-config', action='store', dest='config', default="E010_D010/64x64")
-parser.add_argument('-hparam', action='store', dest='hparam', default="sa_cpus-1_n-50_c-None")
-parser.add_argument('-nb_oracles', action='store', dest='nb_oracles', default=15)
-parser.add_argument('-nb_resets', action='store', dest='nb_resets', default=30)
-parameters = parser.parse_args()
-
-NB_ORACLES = int(parameters.nb_oracles)
-NB_RESETS = int(parameters.nb_resets)
-RUN_TIME = 7200.0
-WORST_SCORE = -1000
-
-
-def data_oracle(oracle, nb_seeds):
-
-    rewards_Y = []
+def avg_final_rew(oracle, approach, nb_seeds, depth):
+    rew_final = []
     for i in range(nb_seeds):
-        if oracle == "BaseDSL":
-            name = str(oracle) + '/' + str(i + 1)
-            rewards_Y.append(np.load("./Oracle/" + name + "/BaseTreeRewards.npy").tolist())
-        else:
-            name = str(oracle) + '/' + str(i + 1)
-            rewards_Y.append(np.load("./Oracle/" + name + "/AugTreeRewards.npy").tolist())
-
-    depths_X = [1, 2, 3]
-    mean_Y = np.mean(rewards_Y, axis=0)
-    std_Y = np.std(rewards_Y, axis=0) #* (nb_seeds ** -0.5)
-
-    print(mean_Y, std_Y)
-    return depths_X, mean_Y, std_Y
+        load_from = './Oracle/' + str(oracle) + '/' + str(i+1) + '/' + approach + "/TimeVsReward_" + str(depth) + '.npy'
+        rew_final.append(np.load(load_from)[-1][1])
+        print(rew_final[-1])
+    mean_Y = np.mean(rew_final, axis=0)
+    std_Y = np.std(rew_final, axis=0)  # * (nb_seeds ** -0.5)
+    print(oracle, approach, ":", mean_Y, std_Y)
+    return mean_Y, std_Y
 
 
-def view_oracle(oracle, nb_seeds):
+def avg_rew_vs_time(oracle, approach, nb_seeds, depth):
 
-    rewards_Y = []
+    results = []
+    extended_times = []
+    extended_scores = []
+    times = []
+    rewards = []
     for i in range(nb_seeds):
-        if oracle == "BaseDSL":
-            name = str(oracle) + '/' + str(i + 1)
-            rewards_Y.append(np.load("./Oracle/" + name + "/BaseTreePrograms.npy").tolist())
-        else:
-            name = str(oracle) + '/' + str(i + 1)
-            rewards_Y.append(np.load("./Oracle/" + name + "/AugTreePrograms.npy").tolist())
+        load_from = './Oracle/' + str(oracle) + '/' + str(i+1) + '/' + approach + "/TimeVsReward_" + str(depth) + '.npy'
+        times_and_rewards = np.load(load_from)
+        t_i = [item[0] for item in times_and_rewards]  #times_and_rewards[:][1]
+        r_i = [item[1] for item in times_and_rewards] #times_and_rewards[:][0]
 
-    depths_X = [1, 2, 3]
-    mean_Y = np.mean(rewards_Y, axis=0)
-    std_Y = np.std(rewards_Y, axis=0) #* (nb_seeds ** -0.5)
-
-    print(mean_Y, std_Y)
-    return depths_X, mean_Y, std_Y
+        rewards.append(r_i)
+        times.append(t_i)
+        #print(times)
+        extended_times.extend(t_i)
+        results.append(times_and_rewards)
+    extended_times.sort()
 
 
-def plot_all(configs, seeds):
+    worst_score = 0 # min(rewards)
 
-    for count, config in enumerate(configs):
-        depths_X, mean_Y, std_Y = data_oracle(config, seeds)
-        plt.plot(depths_X, mean_Y)
-        plt.fill_between(depths_X, mean_Y - std_Y, mean_Y + std_Y, alpha=0.2)
+    # Extent score vectors to be consistent with extended times
+    for i in range(1, nb_seeds + 1):
+        # Current Run i
+        scores_i = rewards[i-1] # results[i - 1][0]
+        times_i = times[i-1] #results[i - 1][1]
+        # Vector of length all_times
+        extended_scores_i = [worst_score] * len(extended_times)
+        # Indices of current times in all_times vector
+        indexes_i = [i in times_i for i in extended_times]
+        indexes_i = np.where(indexes_i)[0]
+        # Fill up an extended vector with the
+        for x, y in zip(indexes_i, scores_i):
+            extended_scores_i[x] = y
+        # extended_scores_i[indexes_i] = scores_i
+#        #print(extended_scores_i)
+        extended_scores_i = np.maximum.accumulate(extended_scores_i)
+        # Update results
+        extended_scores.append(extended_scores_i)
 
-    plt.xlabel('Tree Depth')
-    plt.ylabel('Reward (100 episodes)')
-    plt.title('LunarLander-v2')
-    plt.ylim([0, 510])
-    plt.hlines(485., 1, 3, colors='red', linestyles='dashed')
-    plt.legend(configs, loc='lower right')
-    plt.pause(5)
-    plt.savefig('TreePlot.png', dpi=1080, bbox_inches="tight")
+        #print(extended_scores_i)
+
+    # Take averages
+    score_avg = np.mean(extended_scores, axis=0)
+    score_std = np.std(extended_scores, axis=0) #/ (NB_ORACLES ** 0.5)
+
+    return extended_times, score_avg, score_std
 
 
-plot_all(["4x0", "32x0", "64x64", "256x256", "BaseDSL"], 15)
+#avg_final_rew("32x0", "2a_")
 
+
+
+
+configs = [["256x0", "2c", 15, 1], ["64x64", "2c", 15, 1], ["256x256", "2c", 15, 1]]
+#configs = [["4x0", "2a", 15, 1], ["32x0", "2a", 15, 1], ["64x64", "2a", 15, 1], ["256x256", "2a", 15, 1]]
+
+
+# Generate Tables
+for i, config in enumerate(configs):
+    avg_final_rew(config[0], config[1], config[2], config[3])
+
+
+# Generate Plots
+for i, config in enumerate(configs):
+    extended_times, score_avg, score_std = avg_rew_vs_time(config[0], config[1], config[2], config[3])
+    plt.plot(extended_times, score_avg, label=config[0])
+    plt.fill_between(extended_times, score_avg - score_std, score_avg + score_std, alpha=0.2)
+
+plt.xlabel('Runtime (s)')
+plt.ylabel('Reward')
+plt.title("CartPole-v1")
+plt.ylim([0, 510])
+plt.savefig("plot_2a.png", dpi=1080, bbox_inches="tight")
+plt.legend(loc='lower right')
+plt.pause(10)
 

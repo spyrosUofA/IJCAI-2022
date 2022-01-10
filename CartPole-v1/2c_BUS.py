@@ -1,4 +1,3 @@
-import torch
 import gym
 from DSL_BUS import Ite, Lt, Observation, Num, AssignAction, Addition, Multiplication, Linear, ReLU
 import numpy as np
@@ -143,7 +142,7 @@ class BottomUpSearch():
                         best_policy = p_copy
                         best_score = score
 
-        return best_policy, number_evaluations
+        return best_policy, number_evaluations, best_score
 
 
 def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPole-v1'):
@@ -185,12 +184,13 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
     # NDPS
     for r in range(roll_outs):
         # Imitation Step
-        next_program, nb_evals = synthesizer.imitate_oracle(max_size, eval_fn, operations, constant_values,
+        next_program, nb_evals, score = synthesizer.imitate_oracle(max_size, eval_fn, operations, constant_values,
                                                             observation_values, action_values,
                                                             linear_values, relu_programs, True)
 
         # Evaluate program
         reward = eval_fn.collect_reward(next_program, 100)
+        print(reward)
 
         # Update program
         if reward > best_reward:
@@ -202,6 +202,7 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
 
         # log results
         time_vs_reward.append([time.time() - t0, best_reward])
+        print(r, best_reward, score)
 
     # save data
     np.save(file=save_to + 'Reward_1.npy', arr=reward)
@@ -214,8 +215,10 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
     print(best_program.toString())
 
 
-
 if __name__ == '__main__':
-    for s in range(1, 16):
-        algo_NDPS("256x256", s)
+    for s in range(15, 16):
+        #algo_NDPS("256x256", s)
+        algo_NDPS("256x0", s)
+        algo_NDPS("64x64", s)
+
 

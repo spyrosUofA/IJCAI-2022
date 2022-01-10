@@ -52,9 +52,8 @@ class Node:
                 name = "Num"+str(i)
                 i+=1
                 originals.append(node.value)
-                interval = create_interval(node.value, 2.5)
+                interval = (-2.5, 2.5) #create_interval(node.value, 2.5)
                 dict_ranges[name] = copy.deepcopy(interval)
-                #print(type(interval))
             elif type(node) is Ite:
                 q.append(node.condition)
                 q.append(node.true_case)

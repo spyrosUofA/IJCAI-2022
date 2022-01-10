@@ -133,6 +133,7 @@ class BottomUpSearch():
             for p in self.grow(plist, closed_list, operations, current_size):
                 if p.name() == Ite.name():
                     p_copy = copy.deepcopy(p)
+                    print(p.size)
                     # Evaluate policy
                     if PiRL:
                         score = eval_fn.optimize(p_copy)
@@ -203,6 +204,7 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
 
         # log results
         time_vs_reward.append([time.time()-t0, best_reward])
+        print(r, best_reward)
 
     # save data
     np.save(file=save_to + 'Reward_1.npy', arr=reward)
@@ -217,8 +219,8 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
 
 if __name__ == '__main__':
     for s in range(1, 16):
-        algo_NDPS("4x0", s)
-        algo_NDPS("32x0", s)
-        algo_NDPS("256x0", s)
-        algo_NDPS("64x64", s)
+        #algo_NDPS("4x0", s)
+        #algo_NDPS("32x0", s)
+        #algo_NDPS("256x0", s)
+        #algo_NDPS("64x64", s)
         algo_NDPS("256x256", s)
