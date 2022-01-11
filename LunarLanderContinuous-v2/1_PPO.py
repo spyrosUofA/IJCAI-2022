@@ -57,12 +57,12 @@ def main(seed, l1_actor, l2_actor):
 
 if __name__ == "__main__":
 
-    pool = multiprocessing.Pool(5)
-    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0)))
-    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256)))
+    pool = multiprocessing.Pool(10)
+    #pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0)))
+    #pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0)))
+    #pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64)))
+    pool.starmap(main, zip(range(6, 16), repeat(256), repeat(256)))
 
 
 

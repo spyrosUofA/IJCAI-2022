@@ -136,9 +136,6 @@ def main(seed, l1_actor, l2_actor, depth):
 
 if __name__ == "__main__":
 
-    main(1, 256, 256, 2)
-    exit()
-
     # Multiprocess
     pool = multiprocessing.Pool(10)
 
