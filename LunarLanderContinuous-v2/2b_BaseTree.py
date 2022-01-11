@@ -118,7 +118,28 @@ def main(seed, l1_actor, l2_actor, depth):
 if __name__ == "__main__":
 
     # Multiprocess
-    pool = multiprocessing.Pool(10)
+    pool = multiprocessing.Pool(15)
+
+    # Depth 2
+    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(2)))
+
+    # Depth 3
+    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(3)))
+
+    # Depth 6
+    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(6)))
 
     # Depth 8
     pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(8)))

@@ -72,24 +72,38 @@ def avg_rew_vs_time(oracle, approach, nb_seeds, depth):
 
 
 # AugTree (2)
+print("Depth 2")
 avg_final_rew(oracle="4x0", approach="2a", nb_seeds=15, depth=2)
 avg_final_rew(oracle="32x0", approach="2a", nb_seeds=15, depth=2)
 avg_final_rew(oracle="256x0", approach="2a", nb_seeds=15, depth=2)
 avg_final_rew(oracle="64x64", approach="2a", nb_seeds=15, depth=2)
 avg_final_rew(oracle="256x256", approach="2a", nb_seeds=15, depth=2)
-
+print("-------------")
 
 # AugTree (3)
+print("Depth 3")
 avg_final_rew(oracle="4x0", approach="2a", nb_seeds=15, depth=3)
 avg_final_rew(oracle="32x0", approach="2a", nb_seeds=15, depth=3)
 avg_final_rew(oracle="256x0", approach="2a", nb_seeds=15, depth=3)
 avg_final_rew(oracle="64x64", approach="2a", nb_seeds=15, depth=3)
 avg_final_rew(oracle="256x256", approach="2a", nb_seeds=15, depth=3)
-
+print("-------------")
 
 # BaseTree (8)
+print("Depth 8")
 avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=8)
 avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=8)
 avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=8)
 avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=8)
 avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=8)
+
+
+avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=6)
+avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=6)
+avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=6)
+
+print("3")
+avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=3)
+
+
+

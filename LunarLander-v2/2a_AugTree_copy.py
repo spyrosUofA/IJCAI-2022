@@ -9,6 +9,7 @@ from sklearn import tree
 import multiprocessing
 from itertools import repeat
 import time
+from numpy.random import choice
 
 
 def softmax(x):
@@ -33,6 +34,7 @@ def forward_pass_1(obs, w1, b1, w2, b2, w3=None, b3=None):
     log_probs = np.log(probs)
     best_action = np.argmax(probs)
     viper_weight = max(probs) - min(probs)
+    l1_neurons.extend(obs)
     return best_action, viper_weight, l1_neurons
 
 
@@ -57,11 +59,11 @@ def forward_pass_2(obs, w1, b1, w2, b2, w3, b3):
     log_probs = np.log(probs)
     best_action = np.argmax(probs)
     viper_weight = max(log_probs) - min(log_probs)
+    l1_neurons.extend(obs)
     return best_action, viper_weight, l1_neurons
 
 
-def initialize_history(env, model, load_from, games, get_weights, forward_pass):
-    observations = []
+def initialize_history(env, model, games, get_weights, forward_pass):
     actions = []
     viper_weights = []
     neurons = []
@@ -75,18 +77,14 @@ def initialize_history(env, model, load_from, games, get_weights, forward_pass):
             # Query oracle
             action, viper_weight, l1_neurons = forward_pass(state, w1, b1, w2, b2, w3, b3)
             # Record Trajectory
-            observations.append(state)
             actions.append(action)
             viper_weights.append(viper_weight)
-            l1_neurons.extend(state)
             neurons.append(l1_neurons)
             # Interact with Environment
             state, reward, done, _ = env.step(action)
             r += reward
     r = r / games
     print("Oracle Reward:", r)
-    np.savetxt(load_from + 'OracleReward.txt', [r])
-
     return neurons, actions, viper_weights
 
 
@@ -102,19 +100,19 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
     # Setup task
     regr_tree = tree.DecisionTreeClassifier(max_depth=depth, random_state=seed)
     w1, b1, w2, b2, w3, b3 = get_weights(model)
-    X, Y, VW = initialize_history(env, model, load_from, eps_per_rollout, get_weights, forward_pass)
+    X, Y, VW = initialize_history(env, model, eps_per_rollout, get_weights, forward_pass)
 
     # Rollout N times
     for r in range(rollouts):
 
         # Resample dataset (VIPER)
-        #draw = choice(range(len(Y)), 100000, p=softmax(VW))
-        #x = [X[i] for i in draw]
-        #y = [Y[i] for i in draw]
-        #regr_tree.fit(x, y)
+        draw = choice(range(len(Y)), 100000, p=softmax(VW))
+        x = [X[i] for i in draw]
+        y = [Y[i] for i in draw]
+        regr_tree.fit(x, y)
 
         # Fit decision tree
-        regr_tree.fit(X, Y)
+        #regr_tree.fit(X, Y)
 
         # Collect M trajectories, aggregate dataset
         for i in range(eps_per_rollout):
@@ -122,8 +120,7 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
             done = False
             while not done:
                 # Query oracle
-                a_star, viper_weight, l1_neurons = forward_pass(ob, w1, b1, w2, b2, w3, b3) #model.policy.predict(ob, deterministic=True)[0], None, (np.matmul(w1, ob) + b1).tolist()  # forward_pass(ob, w1, b1, w2, b2, w3, b3)
-                l1_neurons.extend(ob)
+                a_star, viper_weight, l1_neurons = forward_pass(ob, w1, b1, w2, b2, w3, b3)
                 # DAgger
                 X.append(l1_neurons)
                 Y.append(a_star)
@@ -138,8 +135,7 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
             ob = env.reset()
             done = False
             while not done:
-                l1_neurons = np.maximum(0, np.matmul(w1, ob) + b1).tolist() #(np.matmul(w1, ob) + b1).tolist() #
-                #l1_neurons = l1_neurons.tolist()
+                l1_neurons = np.maximum(0, np.matmul(w1, ob) + b1).tolist()
                 l1_neurons.extend(ob)
                 action = regr_tree.predict([l1_neurons])[0]
                 ob, r_t, done, _ = env.step(action)
@@ -160,7 +156,7 @@ def main(seed, l1_actor, l2_actor, depth):
 
     # configure directory
     load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
-    save_to = load_from + '2a_max/'
+    save_to = load_from + '2a_max_viper/'
     if not os.path.exists(save_to):
         os.makedirs(save_to)
 
@@ -195,6 +191,7 @@ def main(seed, l1_actor, l2_actor, depth):
     print("Saved")
 
 if __name__ == "__main__":
+    main(1, 256, 0, 2)
 
     pool = multiprocessing.Pool(10)
     pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))

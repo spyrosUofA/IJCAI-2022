@@ -482,12 +482,11 @@ class SimulatedAnnealing():
                 prob_accept = min(1, self.accept_function(current_score, next_score))
                 prob = random.uniform(0, 1)
                 if prob < prob_accept:
-                    #print("Current score: ", current_score, iteration_number, self.current_temperature)
-                    current_program = mutation #simplify_program1(mutation)  # mutattion for reset 1 and 2
+                    current_program = simplify_program1(mutation)  # mutattion for reset 1 and 2
                     current_score = next_score
-
+                    print("Current score: ", next_score, mutation.to_string(), iteration_number)
                 iteration_number += 1
-                print(iteration_number)
+
                 self.decrease_temperature(iteration_number)
             # END SA
 

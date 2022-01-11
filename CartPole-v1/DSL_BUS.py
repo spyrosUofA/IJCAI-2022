@@ -52,7 +52,7 @@ class Node:
                 name = "Num"+str(i)
                 i+=1
                 originals.append(node.value)
-                interval = (-2.5, 2.5) #create_interval(node.value, 2.5)
+                interval = (-1., 1.) #create_interval(node.value, 2.5) #
                 dict_ranges[name] = copy.deepcopy(interval)
             elif type(node) is Ite:
                 q.append(node.condition)
@@ -71,7 +71,7 @@ class Node:
                     name = "w" + str(j) + '.' + str(k)
                     #print(w_k)
                     originals.append(w_k)
-                    interval = (-2.5, 2.5)  # create_interval(node.children[0][k], 2)
+                    interval = (-1., 1.)  #create_interval(w_k, 2) #
                     dict_ranges[name] = copy.deepcopy(interval)
                 j += 1
         return dict_ranges, originals

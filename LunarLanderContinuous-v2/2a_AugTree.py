@@ -137,7 +137,7 @@ def main(seed, l1_actor, l2_actor, depth):
 if __name__ == "__main__":
 
     # Multiprocess
-    pool = multiprocessing.Pool(10)
+    pool = multiprocessing.Pool(15)
 
     # Depth 2
     pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(2)))

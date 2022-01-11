@@ -181,12 +181,15 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
     synthesizer = BottomUpSearch()
     eval_fn = DAgger(oracle, nb_evaluations=100, seed=seed, env_name=pomd)
 
+    # Generate sketch
+    next_program, nb_evals, score = synthesizer.imitate_oracle(max_size, eval_fn, operations, constant_values,
+                                                               observation_values, action_values,
+                                                               linear_values, relu_programs, False)
+
     # NDPS
     for r in range(roll_outs):
-        # Imitation Step
-        next_program, nb_evals, score = synthesizer.imitate_oracle(max_size, eval_fn, operations, constant_values,
-                                                            observation_values, action_values,
-                                                            linear_values, relu_programs, True)
+
+        score = eval_fn.optimize(next_program)
 
         # Evaluate program
         reward = eval_fn.collect_reward(next_program, 100)
@@ -195,14 +198,14 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
         # Update program
         if reward > best_reward:
             best_reward = reward
-            best_program = next_program
+            best_program = copy.deepcopy(next_program)
 
         # Update histories
         eval_fn.update_trajectory0(best_program, eps_per_rollout)
 
         # log results
         time_vs_reward.append([time.time() - t0, best_reward])
-        print(r, best_reward, score)
+        print(r, best_reward, score, next_program.toString())
 
     # save data
     np.save(file=save_to + 'Reward_1.npy', arr=reward)
