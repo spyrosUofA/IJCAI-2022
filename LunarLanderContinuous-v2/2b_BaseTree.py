@@ -134,6 +134,13 @@ if __name__ == "__main__":
     pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(3)))
     pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(3)))
 
+    # Depth 5
+    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(5)))
+
     # Depth 6
     pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(6)))
     pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(6)))

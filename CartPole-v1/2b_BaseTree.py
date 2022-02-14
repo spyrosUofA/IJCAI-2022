@@ -1,14 +1,15 @@
 import gym
 from stable_baselines3 import PPO
-import torch
 import os
 import pickle
 import numpy as np
 import copy
 from sklearn import tree
-import multiprocessing
-from itertools import repeat
 import time
+from numpy.random import choice
+import argparse
+#import multiprocessing
+#from itertools import repeat
 
 
 def softmax(x):
@@ -101,13 +102,13 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
     for r in range(rollouts):
 
         # Resample dataset (VIPER)
-        #draw = choice(range(len(Y)), 100000, p=softmax(VW))
-        #x = [X[i] for i in draw]
-        #y = [Y[i] for i in draw]
-        #regr_tree.fit(x, y)
+        draw = choice(len(Y), 50000, p=softmax(VW))
+        x = [X[i] for i in draw]
+        y = [Y[i] for i in draw]
+        regr_tree.fit(x, y)
 
         # Fit decision tree
-        regr_tree.fit(X, Y)
+        #regr_tree.fit(X, Y)
 
         # Collect M trajectories
         for i in range(eps_per_rollout):
@@ -151,7 +152,7 @@ def main(seed, l1_actor=256, l2_actor=256, depth=1):
 
     # configure directory
     load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
-    save_to = load_from + '2a/'
+    save_to = load_from + '2b_FINAL/'
     if not os.path.exists(save_to):
         os.makedirs(save_to)
 
@@ -184,8 +185,17 @@ def main(seed, l1_actor=256, l2_actor=256, depth=1):
 
 if __name__ == "__main__":
 
-    main(1)
-    exit()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-seed', action='store', dest='seed', default=1)
+    parameters = parser.parse_args()
+    seed = int(parameters.seed)
 
-    for seed in range(1, 16):
-        main(seed)
+    main(seed, 4, 0, 1)
+    main(seed, 32, 0, 1)
+    main(seed, 64, 64, 1)
+    main(seed, 256, 256, 1)
+
+    main(seed, 4, 0, 2)
+    main(seed, 32, 0, 2)
+    main(seed, 64, 64, 2)
+    main(seed, 256, 256, 2)

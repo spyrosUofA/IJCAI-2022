@@ -131,10 +131,12 @@ class BottomUpSearch():
 
         for current_size in range(2, bound + 1):
             for p in self.grow(plist, closed_list, operations, current_size):
+
                 if p.name() == Ite.name():
 
                     # sketch to simplify the search
-                    if p.size < min_size: continue
+                    if p.size < min_size:
+                        continue
                     # Four unique actions?
                     if len(set(p.get_action_nodes())) == 4:
                         pass
@@ -142,6 +144,7 @@ class BottomUpSearch():
                         continue
                     # nice structure?
                     if p.true_case.name() == Ite.name() and p.false_case.name() == Ite.name():
+                        print("hi")
                         pass
                     else:
                         continue
@@ -163,7 +166,7 @@ class BottomUpSearch():
         return best_policy, number_evaluations
 
 
-def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='LunarLander-v2'):
+def algo_NDPS(oracle_path, seed, roll_outs=50, eps_per_rollout=2, pomd='LunarLander-v2'):
 
     # logs
     t0 = time.time()
@@ -185,14 +188,13 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='LunarLa
     # Specify DSL
     operations = [Ite, Lt]
     linear_values = []
-    constant_values = np.arange(-2, 2, 0.5).tolist() # [0.0]
+    constant_values = [0.0]
     observation_values = [] # np.arange(env.observation_space.shape[0])
     action_values = np.arange(env.action_space.n)
     relu_programs = pickle.load(open(load_from + "ReLUs.pkl", "rb"))
     min_size = 16
     max_size = 16
-    bo = False
-
+    bo = True
 
     # load oracle model, initialize dataset
     model = PPO.load(load_from + 'model')
@@ -222,7 +224,7 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='LunarLa
 
         # log results
         time_vs_reward.append([time.time()-t0, best_reward])
-        print(r, best_reward)
+        print(r, best_reward, best_program.toString())
 
     # save data
     np.save(file=save_to + 'Reward_1.npy', arr=reward)
@@ -238,6 +240,7 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='LunarLa
 if __name__ == '__main__':
     for s in range(1, 16):
         algo_NDPS("4x0", s)
+        exit()
         algo_NDPS("32x0", s)
         algo_NDPS("256x0", s)
         algo_NDPS("64x64", s)

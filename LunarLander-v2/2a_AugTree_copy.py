@@ -31,9 +31,12 @@ def forward_pass_1(obs, w1, b1, w2, b2, w3=None, b3=None):
     outputs = np.matmul(l1_neurons, np.transpose(w2)) + b2
     # Action probabilities
     probs = softmax(outputs)
-    log_probs = np.log(probs)
     best_action = np.argmax(probs)
+    # Viper weights
+    log_probs = np.log(probs)
+    viper_weight = max(log_probs) - min(log_probs)
     viper_weight = max(probs) - min(probs)
+    # Extend l1
     l1_neurons.extend(obs)
     return best_action, viper_weight, l1_neurons
 
@@ -88,9 +91,7 @@ def initialize_history(env, model, games, get_weights, forward_pass):
     return neurons, actions, viper_weights
 
 
-def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass):
-
-    t0 = time.time()
+def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass, t0):
 
     # Instantiate loggers
     best_program = None
@@ -106,13 +107,14 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
     for r in range(rollouts):
 
         # Resample dataset (VIPER)
-        draw = choice(range(len(Y)), 100000, p=softmax(VW))
-        x = [X[i] for i in draw]
-        y = [Y[i] for i in draw]
-        regr_tree.fit(x, y)
+        #draw = choice(len(Y), min(len(Y), 200000), p=softmax(VW))
+        #print(len(Y), len(draw))
+        #x = [X[i] for i in draw]
+        #y = [Y[i] for i in draw]
+        #regr_tree.fit(x, y)
 
         # Fit decision tree
-        #regr_tree.fit(X, Y)
+        regr_tree.fit(X, Y)
 
         # Collect M trajectories, aggregate dataset
         for i in range(eps_per_rollout):
@@ -154,19 +156,19 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
 
 def main(seed, l1_actor, l2_actor, depth):
 
+    t0 = time.time()
+
     # configure directory
     load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
-    save_to = load_from + '2a_max_viper/'
+    save_to = load_from + '2a_max_viper_FINAL/'
     if not os.path.exists(save_to):
         os.makedirs(save_to)
 
     # configure neural policy
     if l2_actor == 0:
-        net_arch = [l1_actor]
         get_weights = get_weights_1
         forward_pass = forward_pass_1
     else:
-        net_arch = [l1_actor, l2_actor]
         get_weights = get_weights_2
         forward_pass = forward_pass_2
 
@@ -178,24 +180,23 @@ def main(seed, l1_actor, l2_actor, depth):
     model = PPO.load(load_from + 'model')
 
     # DAgger rollouts
-    reward, program, time_vs_reward = augmented_dagger(env, model, load_from, depth, 25, 25, seed, get_weights, forward_pass)
+    reward, program, time_vs_reward = augmented_dagger(env, model, depth, 25, 25, seed, get_weights, forward_pass, t0)
     print(save_to)
     print("Depth: ", depth)
     print("Reward: ", reward)
     print(tree.export_text(program))
 
     # Save results
-    np.save(file=save_to + 'Rew_' + str(depth) + '.npy', arr=reward)
     pickle.dump(program, file=open(save_to + 'Program_' + str(depth) + '.pkl', "wb"))
     np.save(file=save_to + 'TimeVsReward_' + str(depth) + '.npy', arr=time_vs_reward)
     print("Saved")
 
 if __name__ == "__main__":
-    main(1, 256, 0, 2)
 
-    pool = multiprocessing.Pool(10)
-    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    pool = multiprocessing.Pool(15)
+    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(2)))
     exit()
+
     pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
     pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
     pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))

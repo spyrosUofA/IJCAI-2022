@@ -110,7 +110,7 @@ class Evaluate():
 
         try:
             # Bayesian Optimization
-            bayesOpt.maximize(init_points=100, n_iter=5, kappa=2.5)
+            bayesOpt.maximize(init_points=200, n_iter=25, kappa=2.5)
             # Update tree with optimized Nums
             p.set_Num_value(bayesOpt.max['params'])
             return bayesOpt.max['target']

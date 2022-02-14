@@ -11,6 +11,7 @@ from itertools import repeat
 import time
 from numpy.random import choice
 
+
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
 
@@ -30,11 +31,12 @@ def forward_pass_1(obs, w1, b1, w2, b2, w3=None, b3=None):
     outputs = np.matmul(l1_neurons, np.transpose(w2)) + b2
     # Action probabilities
     probs = softmax(outputs)
-    best_action = np.argmax(probs)
-    # Viper weights
     log_probs = np.log(probs)
+    best_action = np.argmax(probs)
     viper_weight = max(log_probs) - min(log_probs)
     viper_weight = max(probs) - min(probs)
+    l1_neurons = (np.matmul(w1, obs) + b1).tolist()
+    l1_neurons.extend(obs)
     return best_action, viper_weight, l1_neurons
 
 
@@ -56,16 +58,14 @@ def forward_pass_2(obs, w1, b1, w2, b2, w3, b3):
     outputs = np.matmul(l2_neurons, np.transpose(w3)) + b3
     # Action probabilities
     probs = softmax(outputs)
-    best_action = np.argmax(probs)
-    # Viper weights
     log_probs = np.log(probs)
+    best_action = np.argmax(probs)
     viper_weight = max(log_probs) - min(log_probs)
-    viper_weight = max(probs) - min(probs)
+    l1_neurons.extend(obs)
     return best_action, viper_weight, l1_neurons
 
 
 def initialize_history(env, model, games, get_weights, forward_pass):
-    observations = []
     actions = []
     viper_weights = []
     neurons = []
@@ -79,21 +79,18 @@ def initialize_history(env, model, games, get_weights, forward_pass):
             # Query oracle
             action, viper_weight, l1_neurons = forward_pass(state, w1, b1, w2, b2, w3, b3)
             # Record Trajectory
-            observations.append(state)
             actions.append(action)
             viper_weights.append(viper_weight)
-            l1_neurons.extend(state)
             neurons.append(l1_neurons)
             # Interact with Environment
             state, reward, done, _ = env.step(action)
             r += reward
     r = r / games
     print("Oracle Reward:", r)
-
     return neurons, actions, viper_weights
 
 
-def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass):
+def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass):
 
     t0 = time.time()
 
@@ -109,11 +106,9 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
 
     # Rollout N times
     for r in range(rollouts):
-        l = min(len(Y), 100000)
 
         # Resample dataset (VIPER)
-        #draw = choice(len(Y), 100000, p=softmax(VW))
-        #draw = choice(len(Y), l, p=softmax(VW))
+        #draw = choice(range(len(Y)), 50000, p=softmax(VW))
         #x = [X[i] for i in draw]
         #y = [Y[i] for i in draw]
         #regr_tree.fit(x, y)
@@ -121,18 +116,13 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
         # Fit decision tree
         regr_tree.fit(X, Y)
 
-        #print(tree.export_text(regr_tree))
-        #print(np.mean(y == regr_tree.predict(x)))
-        #print(np.mean(Y == regr_tree.predict(X)))
-
-        # Collect M trajectories
+        # Collect M trajectories, aggregate dataset
         for i in range(eps_per_rollout):
             ob = env.reset()
             done = False
             while not done:
                 # Query oracle
                 a_star, viper_weight, l1_neurons = forward_pass(ob, w1, b1, w2, b2, w3, b3)
-                l1_neurons.extend(ob)
                 # DAgger
                 X.append(l1_neurons)
                 Y.append(a_star)
@@ -147,7 +137,7 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
             ob = env.reset()
             done = False
             while not done:
-                l1_neurons = np.maximum(0, np.matmul(w1, ob) + b1).tolist()
+                l1_neurons = (np.matmul(w1, ob) + b1).tolist()
                 l1_neurons.extend(ob)
                 action = regr_tree.predict([l1_neurons])[0]
                 ob, r_t, done, _ = env.step(action)
@@ -159,7 +149,7 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
             best_reward = reward_avg
             best_program = copy.deepcopy(regr_tree)
         time_vs_reward.append([time.time()-t0, best_reward])
-        print(r, best_reward, reward_avg)
+        print(r, best_reward)
 
     return best_reward, best_program, time_vs_reward
 
@@ -168,15 +158,17 @@ def main(seed, l1_actor, l2_actor, depth):
 
     # configure directory
     load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
-    save_to = load_from + '2a_NO_WEIGHT_FINAL/'
+    save_to = load_from + '2a_max/'
     if not os.path.exists(save_to):
         os.makedirs(save_to)
 
     # configure neural policy
     if l2_actor == 0:
+        net_arch = [l1_actor]
         get_weights = get_weights_1
         forward_pass = forward_pass_1
     else:
+        net_arch = [l1_actor, l2_actor]
         get_weights = get_weights_2
         forward_pass = forward_pass_2
 
@@ -188,30 +180,39 @@ def main(seed, l1_actor, l2_actor, depth):
     model = PPO.load(load_from + 'model')
 
     # DAgger rollouts
-    reward, program, time_vs_reward = augmented_dagger(env, model, depth, 50, 25, seed, get_weights, forward_pass)
+    reward, program, time_vs_reward = augmented_dagger(env, model, load_from, depth, 25, 25, seed, get_weights, forward_pass)
     print(save_to)
     print("Depth: ", depth)
     print("Reward: ", reward)
     print(tree.export_text(program))
 
     # Save results
+    np.save(file=save_to + 'Rew_' + str(depth) + '.npy', arr=reward)
     pickle.dump(program, file=open(save_to + 'Program_' + str(depth) + '.pkl', "wb"))
     np.save(file=save_to + 'TimeVsReward_' + str(depth) + '.npy', arr=time_vs_reward)
     print("Saved")
 
-
 if __name__ == "__main__":
 
-    pool = multiprocessing.Pool(8)
+    for seed in range(1, 16):
+        main(seed, 4, 0, 2)
+    exit()
+
+    pool = multiprocessing.Pool(10)
     pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    exit()
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(2)))
     exit()
 
     # Depth 2
-    for s in range(1, 16):
-        main(s, 4, 0, 2)
-        main(s, 32, 0, 2)
-        main(s, 64, 64, 2)
-        main(s, 256, 256, 2)
+    for seed in range(1, 16):
+        main(seed, 4, 0, 2)
+        main(seed, 32, 0, 2)
+        main(seed, 64, 64, 2)
+        main(seed, 256, 256, 2)
 
     #pool = multiprocessing.Pool(10)
     #pool.starmap(main, zip(range(1, 31), repeat(4), repeat(0)))

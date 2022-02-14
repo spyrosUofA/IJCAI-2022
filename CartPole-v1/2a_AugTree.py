@@ -1,15 +1,15 @@
 import gym
 from stable_baselines3 import PPO
-import torch
 import os
 import pickle
 import numpy as np
 import copy
 from sklearn import tree
-import multiprocessing
-from itertools import repeat
 import time
 from numpy.random import choice
+import argparse
+#import multiprocessing
+#from itertools import repeat
 
 
 def softmax(x):
@@ -31,10 +31,10 @@ def forward_pass_1(obs, w1, b1, w2, b2, w3=None, b3=None):
     outputs = np.matmul(l1_neurons, np.transpose(w2)) + b2
     # Action probabilities
     probs = softmax(outputs)
-    log_probs = np.log(probs)
     best_action = np.argmax(probs)
-    #viper_weight = max(log_probs) - min(log_probs)
-    viper_weight = max(probs) - min(probs)
+    # Viper weights
+    log_probs = np.log(probs)
+    viper_weight = max(log_probs) - min(log_probs)
     l1_neurons.extend(obs.tolist())
     return best_action, viper_weight, l1_neurons
 
@@ -57,14 +57,15 @@ def forward_pass_2(obs, w1, b1, w2, b2, w3, b3):
     outputs = np.matmul(l2_neurons, np.transpose(w3)) + b3
     # Action probabilities
     probs = softmax(outputs)
-    log_probs = np.log(probs)
     best_action = np.argmax(probs)
+    # Viper weights
+    log_probs = np.log(probs)
     viper_weight = max(log_probs) - min(log_probs)
     l1_neurons.extend(obs.tolist())
     return best_action, viper_weight, l1_neurons
 
 
-def initialize_history(env, model, load_from, games, get_weights, forward_pass):
+def initialize_history(env, model, games, get_weights, forward_pass):
     observations = []
     actions = []
     viper_weights = []
@@ -88,12 +89,10 @@ def initialize_history(env, model, load_from, games, get_weights, forward_pass):
             r += reward
     r = r / games
     print("Oracle Reward:", r)
-    np.savetxt(load_from + 'OracleReward.txt', [r])
-
     return neurons, actions, viper_weights
 
 
-def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass, t0):
+def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass, t0):
 
     # Instantiate loggers
     best_program = None
@@ -103,13 +102,13 @@ def augmented_dagger(env, model, load_from, depth, rollouts, eps_per_rollout, se
     # Setup task
     regr_tree = tree.DecisionTreeClassifier(max_depth=depth, random_state=seed)
     w1, b1, w2, b2, w3, b3 = get_weights(model)
-    X, Y, VW = initialize_history(env, model, load_from, eps_per_rollout, get_weights, forward_pass)
+    X, Y, VW = initialize_history(env, model, eps_per_rollout, get_weights, forward_pass)
 
     # Rollout N times
     for r in range(rollouts):
 
         # Resample dataset (VIPER)
-        draw = choice(range(len(Y)), 50000, p=softmax(VW))
+        draw = choice(len(Y), 50000, p=softmax(VW))
         x = [X[i] for i in draw]
         y = [Y[i] for i in draw]
         regr_tree.fit(x, y)
@@ -180,7 +179,7 @@ def main(seed, l1_actor, l2_actor, depth):
     model = PPO.load(load_from + 'model')
 
     # DAgger rollouts
-    reward, program, time_vs_reward = augmented_dagger(env, model, load_from, depth, 25, 25, seed, get_weights, forward_pass, t0)
+    reward, program, time_vs_reward = augmented_dagger(env, model, depth, 25, 25, seed, get_weights, forward_pass, t0)
     print(save_to)
     print("Depth: ", depth)
     print("Reward: ", reward)
@@ -193,9 +192,22 @@ def main(seed, l1_actor, l2_actor, depth):
 
 
 if __name__ == "__main__":
-    pool = multiprocessing.Pool(15)
-    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(1)))
-    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(1)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(1)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(1)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(1)))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-seed', action='store', dest='seed', default=1)
+    parameters = parser.parse_args()
+    seed = int(parameters.seed)
+
+    main(seed, 4, 0, 1)
+    main(seed, 32, 0, 1)
+    main(seed, 64, 64, 1)
+    main(seed, 256, 256, 1)
+
+    #pool = multiprocessing.Pool(15)
+    #pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(1)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(1)))
+    #pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(1)))
+    #pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(1)))
+    #pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(1)))
+
+

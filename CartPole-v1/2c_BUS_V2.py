@@ -201,7 +201,7 @@ def algo_NDPS(oracle_path, seed, roll_outs=25, eps_per_rollout=25, pomd='CartPol
             best_program = copy.deepcopy(next_program)
 
         # Update histories
-        eval_fn.update_trajectory0(best_program, eps_per_rollout)
+        eval_fn.update_trajectory0(next_program, eps_per_rollout)
 
         # log results
         time_vs_reward.append([time.time() - t0, best_reward])

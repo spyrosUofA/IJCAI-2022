@@ -30,7 +30,7 @@ def main(l1_actor, l2_actor):
         r_avg.append(r / 100)
 
     mean_Y = np.mean(r_avg, axis=0)
-    std_Y = np.std(r_avg, axis=0)  # * (nb_seeds ** -0.5)
+    std_Y = np.std(r_avg, axis=0)
     print(mean_Y, std_Y)
 
     np.savetxt('./Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/Oracle_Rew.txt', [mean_Y, std_Y])
@@ -39,6 +39,6 @@ def main(l1_actor, l2_actor):
 if __name__ == "__main__":
     main(4, 0)
     main(32, 0)
-    main(256, 256)
+    main(256, 0)
     main(64, 64)
     main(256, 256)

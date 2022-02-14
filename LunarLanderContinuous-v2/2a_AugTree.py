@@ -122,7 +122,7 @@ def main(seed, l1_actor, l2_actor, depth):
     model = PPO.load(load_from + 'model')
 
     # DAgger rollouts
-    reward, program, time_vs_reward = augmented_dagger(env, model, depth, 25, 25, seed, t0)
+    reward, program, time_vs_reward = augmented_dagger(env, model, depth, 50, 25, seed, t0)
     print(save_to)
     print("Depth: ", depth)
     print("Reward: ", reward)
@@ -140,8 +140,9 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(15)
 
     # Depth 2
-    pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(2)))
+    #pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(2)))
     pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    exit()
     pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
     pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))
     pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(2)))
