@@ -38,6 +38,7 @@ def forward_pass_1(obs, w1, b1, w2, b2, w3=None, b3=None):
     return best_action, viper_weight, l1_neurons
 
 
+# Define function for NN with 2 hidden layers
 def get_weights_2(model):
     w1 = model.policy.state_dict()['mlp_extractor.policy_net.0.weight'].detach().numpy()
     b1 = model.policy.state_dict()['mlp_extractor.policy_net.0.bias'].detach().numpy()
@@ -48,7 +49,6 @@ def get_weights_2(model):
     return w1, b1, w2, b2, w3, b3
 
 
-# Define function for NN with 2 hidden layers
 def forward_pass_2(obs, w1, b1, w2, b2, w3, b3):
     # Propagate forward
     l1_neurons = np.maximum(0, np.matmul(w1, obs) + b1).tolist()
@@ -64,6 +64,7 @@ def forward_pass_2(obs, w1, b1, w2, b2, w3, b3):
     return best_action, viper_weight, l1_neurons
 
 
+# Initialize history by rolling out oracle
 def initialize_history(env, model, games, get_weights, forward_pass):
     observations = []
     actions = []
@@ -92,7 +93,7 @@ def initialize_history(env, model, games, get_weights, forward_pass):
 
     return neurons, actions, viper_weights
 
-
+# AugTree, VIPER style
 def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights, forward_pass):
 
     t0 = time.time()
@@ -109,21 +110,16 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
 
     # Rollout N times
     for r in range(rollouts):
-        l = min(len(Y), 100000)
 
-        # Resample dataset (VIPER)
-        #draw = choice(len(Y), 100000, p=softmax(VW))
-        #draw = choice(len(Y), l, p=softmax(VW))
-        #x = [X[i] for i in draw]
-        #y = [Y[i] for i in draw]
-        #regr_tree.fit(x, y)
-
-        # Fit decision tree
-        regr_tree.fit(X, Y)
-
-        #print(tree.export_text(regr_tree))
-        #print(np.mean(y == regr_tree.predict(x)))
-        #print(np.mean(Y == regr_tree.predict(X)))
+        # Resample dataset (VIPER) and fit decision tree
+        if True:
+            l = min(len(Y), 100000)
+            draw = choice(len(Y), l, p=softmax(VW))
+            x = [X[i] for i in draw]
+            y = [Y[i] for i in draw]
+            regr_tree.fit(x, y)
+        else:
+            regr_tree.fit(X, Y)
 
         # Collect M trajectories
         for i in range(eps_per_rollout):
@@ -133,7 +129,7 @@ def augmented_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_wei
                 # Query oracle
                 a_star, viper_weight, l1_neurons = forward_pass(ob, w1, b1, w2, b2, w3, b3)
                 l1_neurons.extend(ob)
-                # DAgger
+                # Dagger
                 X.append(l1_neurons)
                 Y.append(a_star)
                 VW.append(viper_weight)
@@ -168,7 +164,7 @@ def main(seed, l1_actor, l2_actor, depth):
 
     # configure directory
     load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
-    save_to = load_from + '2a_NO_WEIGHT_FINAL/'
+    save_to = load_from + '2a_VIPER_WEIGHT_FINAL/'  #'2a_NO_WEIGHT_FINAL/'
     if not os.path.exists(save_to):
         os.makedirs(save_to)
 
@@ -203,19 +199,8 @@ def main(seed, l1_actor, l2_actor, depth):
 if __name__ == "__main__":
 
     pool = multiprocessing.Pool(8)
-    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
-    exit()
-
-    # Depth 2
-    for s in range(1, 16):
-        main(s, 4, 0, 2)
-        main(s, 32, 0, 2)
-        main(s, 64, 64, 2)
-        main(s, 256, 256, 2)
-
-    #pool = multiprocessing.Pool(10)
-    #pool.starmap(main, zip(range(1, 31), repeat(4), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(32), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(256), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(64), repeat(64)))
-    #pool.starmap(main, zip(range(16, 31), repeat(256), repeat(256)))
+    for d in range(4, 11):
+        pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(d)))

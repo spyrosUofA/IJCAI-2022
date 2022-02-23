@@ -8,8 +8,8 @@ from sklearn import tree
 import time
 from numpy.random import choice
 import argparse
-#import multiprocessing
-#from itertools import repeat
+import multiprocessing
+from itertools import repeat
 
 
 def softmax(x):
@@ -193,18 +193,25 @@ def main(seed, l1_actor, l2_actor, depth):
 
 if __name__ == "__main__":
 
+    pool = multiprocessing.Pool(10)
+    # Depth 3
+    pool.starmap(main, zip(range(1, 16), repeat(1), repeat(0), repeat(1)))
+    exit()
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-seed', action='store', dest='seed', default=1)
     parameters = parser.parse_args()
     seed = int(parameters.seed)
 
-    main(seed, 4, 0, 1)
+    main(seed, 1, 0, 1)
+    exit()
+
+
     main(seed, 32, 0, 1)
     main(seed, 64, 64, 1)
     main(seed, 256, 256, 1)
 
-    #pool = multiprocessing.Pool(15)
-    #pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0), repeat(1)))
+
     #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(1)))
     #pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(1)))
     #pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(1)))

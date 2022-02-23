@@ -41,6 +41,10 @@ method = "2a_NO_WEIGHT_FINAL"
 depth = "2"
 seed = "10"
 
+oracle = "4x0"
+method = "2a_VIPER_WEIGHT_FINAL"
+depth = "2"
+seed = "2"
 
 # Load policy
 policy = pickle.load(open("./Oracle/" + oracle + '/' + seed + '/' + method + '/Program_' + depth + '.pkl', "rb"))
@@ -52,13 +56,13 @@ used_features, used_relus = prepare_program(policy, relus)
 print(tree.export_text(policy, feature_names=relu_names))
 model = PPO.load("./Oracle/" + oracle + '/' + seed + '/' + 'model')
 
-# Extract decision rules (Depth first search)
+# Extract decision rules (Depth First Search)
+# Depth 1
 n0 = used_relus[0][0]
 c0 = policy.tree_.threshold[0] - used_relus[0][1]
-
+# Depth 2
 n1 = used_relus[1][0]
 c1 = policy.tree_.threshold[1] - used_relus[1][1]
-
 n2 = used_relus[2][0]
 c2 = policy.tree_.threshold[4] - used_relus[2][1]
 
@@ -163,28 +167,28 @@ pipe = Pipeline(steps=[("scaler", scaler), ("linSVC", linSVC)])
 # Parameters of pipelines can be set using ‘__’ separated parameter names:
 param_grid = {"linSVC__C": np.logspace(-4, -3, 5)}
 search = GridSearchCV(pipe, param_grid, n_jobs=1, verbose=3)
-search.fit(x2, y2)
+search.fit(x1, y1)
 
 
 
 #print(search.cv_results_)
 print(search.cv_results_['mean_test_score'])
-#print(search.__dict__)
-print("Best parameter (CV score=%0.3f):" % search.best_score_)
-#print(search.best_params_)
+##print(search.__dict__)
+#print("Best parameter (CV score=%0.3f):" % search.best_score_)
+##print(search.best_params_)
 print(search.best_estimator_.named_steps['linSVC'].coef_)
 
 
 
-clf0 = make_pipeline(LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.01))
+clf0 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.0005, max_iter=3000))
 clf0.fit(x, y)
 print(clf0.named_steps['linearsvc'].coef_, clf0.named_steps['linearsvc'].intercept_)
 print(clf0.score(x, y))
 
 # True Case Node
-clf1 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.005, max_iter=3000))
+clf1 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.05, max_iter=3000))
 #clf1 = make_pipeline(LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.01))
-clf1.fit(x1[0:1000], y1[0:1000])
+clf1.fit(x1, y1) #[0:1000], y1[0:1000])
 print(clf1.named_steps['linearsvc'].coef_, clf1.named_steps['linearsvc'].intercept_)
 print(clf1.score(x1, y1))
 
@@ -194,18 +198,19 @@ print(clf1.score(x1, y1))
 
 
 # False Case Node
-clf2 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.005, max_iter=3000))
+clf2 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.01, max_iter=3000))
+clf2 = make_pipeline(StandardScaler(), LinearSVC(random_state=0, tol=1e-4, penalty='l1', loss='squared_hinge', dual=False, C=0.1, max_iter=3000))
 #clf2 = make_pipeline(LinearSVC(random_state=0, tol=1e-1, penalty='l1', loss='squared_hinge', dual=False, C=0.01))
-clf2.fit(x2[0:2000], y2[0:2000])
+clf2.fit(x2, y2) #[0:2000], y2[0:2000])
 print(clf2.named_steps['linearsvc'].coef_, clf2.named_steps['linearsvc'].intercept_)
-print(clf2.score(x2[0:2000], y2[0:2000]))
 print(clf2.score(x2, y2))
+
 
 print(len(y), len(y1), len(y2))
 
 #clf2.named_steps['linearsvc'].coef_[0] = [0, 0.5, 0, 1, 0, 0, 0, 0]
 #clf2.named_steps['linearsvc'].coef_[0] = [0, 0, 0, 0, 0, 1, 0, 0]
-clf2.named_steps['linearsvc'].intercept_[0] = 0.0
+#clf2.named_steps['linearsvc'].intercept_[0] = 0.0
 #print(clf2.score(x1, y1))
 
 

@@ -81,10 +81,13 @@ def avg_rew_vs_rollout(oracle, approach, nb_seeds, depth):
 configs_a2 = [["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x256", "2a_VIPER_WEIGHT_FINAL", 15, 2]]
 
 
-configs_b7 = [] #[["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 7]]
-configs_b8 = []# [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 8]]
+
+configs_b7 = [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 7]]
+configs_b8 = [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 8]]
 
 configs = configs_a2 + configs_b7 + configs_b8 + [["32x0", "2a_NO_WEIGHT_FINAL", 15, 2], ["256x0", "2a_NO_WEIGHT_FINAL", 15, 2]]
+
+#configs =  [["4x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["4x0", "2a_VIPER_WEIGHT_FINAL", 15, 3], ["4x0", "2a_max_viper_FINAL", 15, 2]]
 
 # Generate Plots
 for i, config in enumerate(configs):
@@ -98,7 +101,7 @@ plt.axhline(y=200., color='b', linestyle='--')
 plt.xlabel('DAgger Rollouts')
 plt.ylabel('Reward')
 plt.title("CartPole-v1")
-plt.ylim([-300, 300])
+plt.ylim([-100, 300])
 plt.legend(loc='lower right')
 plt.savefig("plot_2_roll.png", dpi=1080, bbox_inches="tight")
 plt.pause(10)

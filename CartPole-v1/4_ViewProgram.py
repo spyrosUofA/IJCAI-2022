@@ -29,10 +29,10 @@ def my_program(obs, dec_tree, nb_relus, used_features, used_relus):
 
 
 # SPECIFY POLICY
-oracle = "256x0"
-method = "2a"
-depth = "2"
-seed = "14"
+oracle = "1x0"
+method = "2a_viper"
+depth = "1"
+seed = "3"
 
 
 
@@ -42,14 +42,14 @@ seed = "14"
 policy = pickle.load(open("./Oracle/" + oracle + '/' + seed + '/' + method + '/Program_' + depth + '.pkl', "rb"))
 relus = pickle.load(open("./Oracle/" + oracle + '/' + seed + "/ReLUs.pkl", "rb"))
 relu_names = relu_string(relus)
-relu_names.extend(["x", "y", "v_x", "v_y", "theta", "v_th", "c_L", "c_R"])
+relu_names.extend(["x_c", "v_c", "c_L", "c_R"])
 nb_relus = len(relus)
 used_features, used_relus = prepare_program(policy, relus)
 print(tree.export_text(policy, feature_names=relu_names))
 
 
 # SETUP ENVIRONMENT
-env = gym.make("LunarLander-v2")
+env = gym.make("CartPole-v1")
 env.seed(0)
 ob = env.reset()
 averaged = 0.0
@@ -67,7 +67,7 @@ for g in range(games):
     reward = 0.0
     done = False
     while not done:
-        env.render()
+        #env.render()
         action = my_program(ob, policy, nb_relus, used_features, used_relus)
         #print(ob[-2:], action)
         ob, r_t, done, _ = env.step(action)

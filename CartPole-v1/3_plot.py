@@ -71,7 +71,7 @@ def avg_rew_vs_time(oracle, approach, nb_seeds, depth):
 
 
 configs = [["256x0", "2c", 15, 1], ["64x64", "2c", 15, 1], ["256x256", "2c", 15, 1]]
-#configs = [["4x0", "2a", 15, 1], ["32x0", "2a", 15, 1], ["64x64", "2a", 15, 1], ["256x256", "2a", 15, 1]]
+configs = [["1x0", "2a_viper", 15, 1], ["32x0", "2a", 15, 1], ["64x64", "2a", 15, 1], ["256x256", "2a", 15, 1]]
 
 
 # Generate Tables

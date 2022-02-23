@@ -195,17 +195,45 @@ def main(seed, l1_actor, l2_actor, depth):
 
 if __name__ == "__main__":
 
-
     pool = multiprocessing.Pool(8)
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(7)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(3)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(4)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(5)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(6)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(7)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(8)))
+    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(9)))
+    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(10)))
+
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(4)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(7)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(8)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(9)))
+    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(10)))
+
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(4)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(7)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(8)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(9)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(10)))
     exit()
 
-    # Depth 1
-    for s in range(1, 16):
-        main(s, 4, 0, 1)
-        main(s, 32, 0, 1)
-        main(s, 64, 64, 1)
-        main(s, 256, 256, 1)
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(3)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(4)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(5)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(6)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(9)))
+    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(10)))
 
     # Depth 2
     for s in range(1, 16):

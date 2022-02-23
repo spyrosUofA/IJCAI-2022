@@ -8,6 +8,11 @@ import multiprocessing
 from itertools import repeat
 
 
+
+import numpy as np
+from gym import utils
+from gym.envs.mujoco import mujoco_env
+
 def save_relus(model, save_to):
     relu_programs = []
     biases = model.policy.state_dict()['mlp_extractor.policy_net.0.bias'].detach().numpy().tolist()

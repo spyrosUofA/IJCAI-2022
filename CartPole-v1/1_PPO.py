@@ -39,7 +39,7 @@ def main(seed, l1_actor, l2_actor):
     env.seed(seed)
 
     # training completion requirements
-    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=499., verbose=0)
+    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=500., verbose=0)
     eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=0)
 
     # train oracle
@@ -56,8 +56,9 @@ def main(seed, l1_actor, l2_actor):
 
 if __name__ == "__main__":
 
+
     pool = multiprocessing.Pool(10)
     #pool.starmap(main, zip(range(1, 16), repeat(4), repeat(0)))
     #pool.starmap(main, zip(range(1, 31), repeat(32), repeat(0)))
     #pool.starmap(main, zip(range(11, 31), repeat(64), repeat(64)))
-    pool.starmap(main, zip(range(1, 31), repeat(256), repeat(0)))
+    pool.starmap(main, zip(range(1, 16), repeat(1), repeat(0)))

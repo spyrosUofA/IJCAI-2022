@@ -41,9 +41,9 @@ depth = "2"
 seed = "10"
 
 oracle = "256x0"
-method = "2a_viper_FINAL"
-depth = "2"
-seed = "1"
+method = "2a_NO_WEIGHT_FINAL"
+depth = "3"
+seed = "10"
 
 
 # LOAD POLICY
@@ -76,7 +76,7 @@ for g in range(games):
     reward = 0.0
     done = False
     while not done:
-        #env.render()
+        env.render()
         action = my_program(ob, policy, nb_relus, used_features, used_relus)
         #print(ob[-2:], action)
         ob, r_t, done, _ = env.step(action)

@@ -6,7 +6,7 @@ import numpy as np
 def main(l1_actor, l2_actor):
     r_avg = []
 
-    for seed in range(1, 16):
+    for seed in range(2, 3):
 
         # load oracle
         load_from = './Oracle/' + str(l1_actor) + 'x' + str(l2_actor) + '/' + str(seed) + '/'
@@ -37,8 +37,8 @@ def main(l1_actor, l2_actor):
 
 
 if __name__ == "__main__":
-    main(4, 0)
-    main(32, 0)
-    main(256, 0)
-    main(64, 64)
-    main(256, 256)
+    main(2, 0)
+    #main(32, 0)
+    #main(256, 0)
+    #main(64, 64)
+    #main(256, 256)
