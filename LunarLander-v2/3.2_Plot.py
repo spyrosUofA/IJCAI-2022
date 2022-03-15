@@ -88,31 +88,34 @@ configs = configs_a2 + configs_b7 + configs_b8 + [["32x0", "2a_NO_WEIGHT_FINAL",
 
 
 # Oracle Size: 32x0
-configs_aX_32x0 = [["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["32x0", "2a_NO_WEIGHT_FINAL", 15, 3]]
+configs_aX_32x0 = [["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 3]]
 configs_bX_32x0 = [["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 2], ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 3],
                    ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 4], ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 5],
                    ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 6], ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 7],
-                   ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 8], ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 9]]
-                   #["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 10]]
+                   ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 8], ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 9],
+                   ["32x0", "2b_VIPER_WEIGHT_FINAL", 15, 10]]
 configs_32x0 = [configs_aX_32x0, configs_bX_32x0]
+oracle_32x0 = np.loadtxt('./Oracle/32x0/Oracle_Rew.txt')
 
 # Oracle Size: 256x0
-configs_aX_256x0 = [["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x0", "2a_NO_WEIGHT_FINAL", 15, 3]]
+configs_aX_256x0 = [["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 3]]
 configs_bX_256x0 = [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 2], ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 3],
                     ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 4], ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 5],
                     ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 6], ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 7],
                     ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 8], ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 9],
                     ["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 10]]
 configs_256x0 = [configs_aX_256x0, configs_bX_256x0]
+oracle_256x0 = np.loadtxt('./Oracle/256x0/Oracle_Rew.txt')
 
 # Oracle Size: 64x64
-configs_aX_64x64 = [["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["64x64", "2a_NO_WEIGHT_FINAL", 15, 3]]
+configs_aX_64x64 = [["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 3]]
 configs_bX_64x64 = [["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 2], ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 3],
                     ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 4], ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 5],
                     ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 6], ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 7],
                     ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 8], ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 9],
                     ["64x64", "2b_VIPER_WEIGHT_FINAL", 15, 10]]
-configs_64x64 = [configs_aX_64x64, configs_bX_256x0] #, configs_bX_64x64]
+configs_64x64 = [configs_aX_64x64, configs_bX_64x64]
+oracle_64x64 = np.loadtxt('./Oracle/64x64/Oracle_Rew.txt')
 
 # Oracle Size: 256x256
 configs_aX_256x256 = [["256x256", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x256", "2a_VIPER_WEIGHT_FINAL", 15, 3]]
@@ -122,15 +125,15 @@ configs_bX_256x256 = [["256x256", "2b_VIPER_WEIGHT_FINAL", 15, 2], ["256x256", "
                       ["256x256", "2b_VIPER_WEIGHT_FINAL", 15, 8], ["256x256", "2b_VIPER_WEIGHT_FINAL", 15, 9],
                       ["256x256", "2b_VIPER_WEIGHT_FINAL", 15, 10]]
 configs_256x256 = [configs_aX_256x256, configs_bX_256x256]
+oracle_256x256 = np.loadtxt('./Oracle/256x256/Oracle_Rew.txt')
 
+# All Configs
+configs_all = [configs_32x0, configs_256x0, configs_64x64, configs_256x256]
+oracle_all = [oracle_32x0, oracle_256x0, oracle_64x64, oracle_256x256]
 
-configs = configs_bX_256x0 + configs_aX_256x0
-
-
-# REWARD VS DEPTH
+# REWARD VS DEPTH PLOTS
 fig, axs = plt.subplots(1, 4)
-
-for j, configs in enumerate([configs_32x0, configs_256x0, configs_64x64]):  #, configs_256x256]):
+for j, configs in enumerate(configs_all):
     label = "AugTree"
     for a, approach in enumerate(configs):
         avg_scores = []
@@ -147,29 +150,34 @@ for j, configs in enumerate([configs_32x0, configs_256x0, configs_64x64]):  #, c
         label = "VIPER"
     # Final Plot
     axs[j].axhline(y=200., color='g', linestyle='--', label="Solved Threshold")
-    axs[j].axhline(y=234., color='r', linestyle='--', label="Oracle") # FIX THIS
-    axs[j].set_title("Architecture: [" + config[0] + "]")
-
-    #axs[j].ylim([-100, 300])
+    axs[j].axhline(y=oracle_all[j][0], color='r', linestyle='--', label="Oracle")
+    #plt.fill_between(extended_times, score_avg - score_std, score_avg + score_std, alpha=0.2)
+    axs[j].set_title("[" + config[0] + "]")
+    axs[j].set_ylim([-50, 270])
 
 plt.legend(loc='lower right')
-#fig.suptitle('LunarLander-v2')
 
+#plt.legend(loc="lower center", bbox_to_anchor=(0.5, -0.3))
+#fig.subplots_adjust(bottom=0.25)
+
+#fig.suptitle('LunarLander-v2')
 for ax in axs.flat:
     ax.set(xlabel='Tree Depth', ylabel='Reward')
-    ax.label_outer()
+    #ax.label_outer()
 
+#fig.tight_layout()
+#plt.tight_layout()
+#plt.subplots_adjust(wspace=1, hspace=1)
+plt.pause(10)
 plt.savefig("plot_RewVsDepth.png", dpi=1080, bbox_inches="tight")
 
-
-plt.pause(60)
 plt.clf()
 exit()
 
 
-# REWARD VS DEPTH
+# REWARD VS DEPTH INDIVIDUAL
 label = "AugTree"
-for a, approach in enumerate(configs_256):
+for a, approach in enumerate(configs_256x0):
     avg_scores = []
     std_scores = []
     depths = []
@@ -190,10 +198,10 @@ plt.ylabel('Reward')
 plt.title("LunarLander-v2")
 plt.ylim([-100, 300])
 plt.legend(loc='lower right')
-plt.savefig("plot_RewVsDepth.png", dpi=1080, bbox_inches="tight")
+#plt.savefig("plot_RewVsDepth.png", dpi=1080, bbox_inches="tight")
 plt.pause(10)
 plt.clf()
-exit()
+
 
 
 # REWARD VS ROLLOUT
@@ -212,60 +220,3 @@ plt.legend(loc='lower right')
 plt.savefig("plot_RewVsRoll.png", dpi=1080, bbox_inches="tight")
 plt.pause(1)
 plt.clf()
-
-
-# AugTree (2)
-print("Depth 2")
-avg_final_rew(oracle="4x0", approach="2a", nb_seeds=15, depth=2)
-avg_final_rew(oracle="32x0", approach="2a", nb_seeds=15, depth=2)
-avg_final_rew(oracle="256x0", approach="2a", nb_seeds=15, depth=2)
-avg_final_rew(oracle="64x64", approach="2a", nb_seeds=15, depth=2)
-avg_final_rew(oracle="256x256", approach="2a", nb_seeds=15, depth=2)
-print("-------------")
-
-# AugTree (3)
-print("Depth 3")
-avg_final_rew(oracle="4x0", approach="2a", nb_seeds=15, depth=3)
-avg_final_rew(oracle="32x0", approach="2a", nb_seeds=15, depth=3)
-avg_final_rew(oracle="256x0", approach="2a", nb_seeds=15, depth=3)
-avg_final_rew(oracle="64x64", approach="2a", nb_seeds=15, depth=3)
-avg_final_rew(oracle="256x256", approach="2a", nb_seeds=15, depth=3)
-print("-------------")
-
-
-print("2")
-avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=2)
-avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=2)
-avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=2)
-avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=2)
-avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=2)
-
-print("3")
-avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=3)
-avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=3)
-avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=3)
-avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=3)
-avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=3)
-
-print("5")
-avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=5)
-avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=5)
-avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=5)
-avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=5)
-avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=5)
-
-print("6")
-avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=6)
-avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=6)
-avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=6)
-avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=6)
-avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=6)
-
-print("Depth 8")
-avg_final_rew(oracle="4x0", approach="2b", nb_seeds=15, depth=8)
-avg_final_rew(oracle="32x0", approach="2b", nb_seeds=15, depth=8)
-avg_final_rew(oracle="256x0", approach="2b", nb_seeds=15, depth=8)
-avg_final_rew(oracle="64x64", approach="2b", nb_seeds=15, depth=8)
-avg_final_rew(oracle="256x256", approach="2b", nb_seeds=15, depth=8)
-
-

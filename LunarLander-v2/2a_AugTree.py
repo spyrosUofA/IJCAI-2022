@@ -198,9 +198,9 @@ def main(seed, l1_actor, l2_actor, depth):
 
 if __name__ == "__main__":
 
-    pool = multiprocessing.Pool(8)
-    for d in range(4, 11):
-        pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(d)))
-        pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(d)))
-        pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(d)))
+    pool = multiprocessing.Pool(3)
+    for d in range(3, 4):
+        #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(d)))
+        #pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(d)))
+        #pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(d)))
         pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(d)))

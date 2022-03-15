@@ -7,7 +7,7 @@ def avg_final_rew(oracle, approach, nb_seeds, depth):
     for i in range(nb_seeds):
         load_from = './Oracle/' + str(oracle) + '/' + str(i+1) + '/' + approach + "/TimeVsReward_" + str(depth) + '.npy'
         rew_final.append(np.load(load_from)[-1][1])
-        print(rew_final[-1])
+        #print(rew_final[-1])
     mean_Y = np.mean(rew_final, axis=0)
     std_Y = np.std(rew_final, axis=0)  # * (nb_seeds ** -0.5)
     print(oracle, approach, ":", mean_Y, std_Y)
@@ -73,7 +73,10 @@ def avg_rew_vs_time(oracle, approach, nb_seeds, depth):
 configs = [["256x0", "2c", 15, 1], ["64x64", "2c", 15, 1], ["256x256", "2c", 15, 1]]
 configs = [["1x0", "2a_viper", 15, 1], ["32x0", "2a", 15, 1], ["64x64", "2a", 15, 1], ["256x256", "2a", 15, 1]]
 
+configs_b1 = [["1x0", "2b_FINAL", 15, 1], ["32x0", "2b_FINAL", 15, 1], ["64x64", "2b_FINAL", 15, 1], ["256x256", "2b_FINAL", 15, 1]]
+configs_b2 = [["1x0", "2b_FINAL", 15, 2], ["32x0", "2b_FINAL", 15, 2], ["64x64", "2b_FINAL", 15, 2], ["256x256", "2b_FINAL", 15, 2]]
 
+configs = configs_b1 + configs_b2
 # Generate Tables
 for i, config in enumerate(configs):
     avg_final_rew(config[0], config[1], config[2], config[3])
@@ -89,7 +92,7 @@ plt.xlabel('Runtime (s)')
 plt.ylabel('Reward')
 plt.title("CartPole-v1")
 plt.ylim([0, 510])
-plt.savefig("plot_2a.png", dpi=1080, bbox_inches="tight")
+#plt.savefig("plot_2a.png", dpi=1080, bbox_inches="tight")
 plt.legend(loc='lower right')
 plt.pause(10)
 

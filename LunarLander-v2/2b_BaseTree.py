@@ -11,6 +11,7 @@ from itertools import repeat
 import time
 from numpy.random import choice
 
+
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
 
@@ -103,7 +104,7 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
     time_vs_reward = []
 
     # Setup task
-    regr_tree = tree.DecisionTreeClassifier(max_depth=depth, random_state=seed)
+    decs_tree = tree.DecisionTreeClassifier(max_depth=depth, random_state=seed)
     w1, b1, w2, b2, w3, b3 = get_weights(model)
     X, Y, VW = initialize_history(env, model, eps_per_rollout, get_weights, forward_pass)
 
@@ -114,10 +115,10 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
         draw = choice(len(Y), min(len(Y), 100000), p=softmax(VW))
         x = [X[i] for i in draw]
         y = [Y[i] for i in draw]
-        regr_tree.fit(x, y)
+        decs_tree.fit(x, y)
 
         # Fit decision tree
-        #regr_tree.fit(X, Y)
+        # decs_tree.fit(X, Y)
 
         # Collect M trajectories
         for i in range(eps_per_rollout):
@@ -126,12 +127,12 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
             while not done:
                 # Query oracle
                 a_star, viper_weight, _ = forward_pass(ob, w1, b1, w2, b2, w3, b3)
-                # DAgger
+                # Dagger
                 X.append(ob)
                 Y.append(a_star)
                 VW.append(viper_weight)
                 # Interact with Environment
-                action = regr_tree.predict([ob])[0]
+                action = decs_tree.predict([ob])[0]
                 ob, r_t, done, _ = env.step(action)
 
         # Evaluate over 100 consecutive episodes
@@ -140,7 +141,7 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
             ob = env.reset()
             done = False
             while not done:
-                action = regr_tree.predict([ob])[0]
+                action = decs_tree.predict([ob])[0]
                 ob, r_t, done, _ = env.step(action)
                 reward_avg += r_t
         reward_avg /= 100.
@@ -148,7 +149,7 @@ def base_dagger(env, model, depth, rollouts, eps_per_rollout, seed, get_weights,
         # Update best program
         if reward_avg > best_reward:
             best_reward = reward_avg
-            best_program = copy.deepcopy(regr_tree)
+            best_program = copy.deepcopy(decs_tree)
         time_vs_reward.append([time.time()-t0, best_reward])
         print(r, best_reward)
 
@@ -165,11 +166,9 @@ def main(seed, l1_actor, l2_actor, depth):
 
     # configure neural policy
     if l2_actor == 0:
-        net_arch = [l1_actor]
         get_weights = get_weights_1
         forward_pass = forward_pass_1
     else:
-        net_arch = [l1_actor, l2_actor]
         get_weights = get_weights_2
         forward_pass = forward_pass_2
 
@@ -180,7 +179,7 @@ def main(seed, l1_actor, l2_actor, depth):
     # load oracle
     model = PPO.load(load_from + 'model')
 
-    # DAgger rollouts
+    # Dagger rollouts
     reward, program, time_vs_reward = base_dagger(env, model, depth, 50, 25, seed, get_weights, forward_pass)
     print(save_to)
     print("Depth: ", depth)
@@ -196,55 +195,9 @@ def main(seed, l1_actor, l2_actor, depth):
 if __name__ == "__main__":
 
     pool = multiprocessing.Pool(8)
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(2)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(3)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(4)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(5)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(6)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(7)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(8)))
-    #pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(9)))
-    pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(10)))
 
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(2)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(3)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(4)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(5)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(6)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(7)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(8)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(9)))
-    pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(10)))
-
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(2)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(3)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(4)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(5)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(6)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(7)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(8)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(9)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(10)))
-    exit()
-
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(2)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(3)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(4)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(5)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(6)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(9)))
-    pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(10)))
-
-    # Depth 2
-    for s in range(1, 16):
-        main(s, 4, 0, 2)
-        main(s, 32, 0, 2)
-        main(s, 64, 64, 2)
-        main(s, 256, 256, 2)
-
-    #pool = multiprocessing.Pool(10)
-    #pool.starmap(main, zip(range(1, 31), repeat(4), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(32), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(256), repeat(0)))
-    #pool.starmap(main, zip(range(16, 31), repeat(64), repeat(64)))
-    #pool.starmap(main, zip(range(16, 31), repeat(256), repeat(256)))
+    for d in range(2, 11):
+        pool.starmap(main, zip(range(1, 16), repeat(32), repeat(0), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(256), repeat(0), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(64), repeat(64), repeat(d)))
+        pool.starmap(main, zip(range(1, 16), repeat(256), repeat(256), repeat(d)))

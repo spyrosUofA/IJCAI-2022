@@ -79,13 +79,15 @@ def avg_rew_vs_rollout(oracle, approach, nb_seeds, depth):
 
 
 configs_a2 = [["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["256x256", "2a_VIPER_WEIGHT_FINAL", 15, 2]]
+configs_a3 = [["32x0", "2a_VIPER_WEIGHT_FINAL", 15, 3], ["256x0", "2a_VIPER_WEIGHT_FINAL", 15, 3], ["64x64", "2a_VIPER_WEIGHT_FINAL", 15, 3], ["256x256", "2a_VIPER_WEIGHT_FINAL", 15, 3]]
+
 
 
 
 configs_b7 = [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 7]]
 configs_b8 = [["256x0", "2b_VIPER_WEIGHT_FINAL", 15, 8]]
 
-configs = configs_a2 + configs_b7 + configs_b8 + [["32x0", "2a_NO_WEIGHT_FINAL", 15, 2], ["256x0", "2a_NO_WEIGHT_FINAL", 15, 2]]
+configs = configs_a2 + configs_a3 + configs_b7 + configs_b8 + [["32x0", "2a_NO_WEIGHT_FINAL", 15, 2], ["256x0", "2a_NO_WEIGHT_FINAL", 15, 2]]
 
 #configs =  [["4x0", "2a_VIPER_WEIGHT_FINAL", 15, 2], ["4x0", "2a_VIPER_WEIGHT_FINAL", 15, 3], ["4x0", "2a_max_viper_FINAL", 15, 2]]
 
